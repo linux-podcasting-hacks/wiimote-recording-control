@@ -1,0 +1,7 @@
+
+devices = {
+    "0C:FC:83:A4:95:E9": MasterWii(100),
+    "0C:FC:83:A4:1A:87": MutingWii(101),
+    "00:17:AB:39:B2:EE": MutingWii(102),
+    "00:17:AB:39:E7:CC": MutingWii(103),
+}
