@@ -75,8 +75,8 @@ Note that for the moment you must manually set the fader automation mode to
 
 ... in the order of importance
 
-* Support OSC to control the DAW.
-* Button to set a chapter mark
+* Support OSC to control the DAW. (somehow works now)
+* Button to set a chapter mark. (somehow works now)
 * Button to start recording (that also makes sure that the fader automation
   modes are set)
 * Documentation
