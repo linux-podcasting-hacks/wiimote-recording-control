@@ -5,6 +5,8 @@ import time
 
 import pypm
 
+from txosc import osc as OSC
+from txosc import sync as SYNC
 
 btn_A     = 0x0008
 btn_one   = 0x0002
@@ -53,12 +55,26 @@ class MIDISender:
         time.sleep(0.1)
         self.midi_out.Write([[[0xb0,126,0],pypm.Time()]])
 
-
 #        self.midi_out.Write([[[0xb0,channel,0],pypm.Time()]])
+
+class OSCSender:
+
+    def __init__(self,host="localhost",port=3819):
+        self.sender = SYNC.UdpSender(host,port)
+
+    def _simple_msg(self,msg):
+        self.sender.send(OSC.Message("/ardour/"+msg))
+
+    def add_marker(self):
+        self.sender.send(OSC.Message("/ardour/add_marker"))
+
+    def recplay(self):
+        self._simple_msg("goto_start")
+        self.sender.send(OSC.Message("/ardour/recenable", 1, 1))
 
 
 midi_sender = MIDISender("Midi Through Port-0")
-
+osc_sender = OSCSender()
 
 class WiiButtonState(object):
     def __init__(self):
@@ -115,9 +131,9 @@ class MutingWii(WiiButtonState):
 class MasterWii(MutingWii):
     def __init__(self,mutingChannel):
         super(MasterWii,self).__init__(mutingChannel)
-        self.button_funcs[btn_A] = (self.jingle_play,self.leds_off)
+        self.button_funcs[btn_one] = (self.jingle_play,self.leds_off)
         self.button_funcs[btn_home] = (self.recplay,self.leds_off)
-        self.button_funcs[btn_plus] = (self.set_mark,self.leds_off)
+        self.button_funcs[btn_A] = (self.set_mark,self.leds_off)
         self.button_funcs[btn_two] = (self.jingles_stop,self.leds_off)
 
     def jingle_play(self):
@@ -135,6 +151,7 @@ class MasterWii(MutingWii):
     def set_mark(self):
         print "Set mark"
         self.device.led = cwiid.LED4_ON
+        osc_sender.add_marker()
 
     def leds_off(self):
         self.device.led = 0

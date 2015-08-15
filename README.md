@@ -24,7 +24,9 @@ Control your recordings by multiple wiimotes – one for each speaker
 
 It's a python program that connects to all the wiimotes you configure. On a
 button press event it sends MIDI signals that you can connect to your jack
-clients like Ardour or some audio player like idjc.
+clients like Ardour or some audio player like idjc. Recently I added
+rudimentary support for OSC. Well, everything here is rudimentary.
+
 
 
 ## What you need
@@ -33,6 +35,7 @@ The following ubuntu packages or equivalents
 
 * python-cwiid
 * python-pypm
+* python-txosc
 
 
 ## How to use it
