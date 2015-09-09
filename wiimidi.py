@@ -45,9 +45,9 @@ class MIDISender:
 
     def play_jingle(self):
         print "playing jingle"
-        self.midi_out.Write([[[0xb0,110,127],pypm.Time()]])
+        self.midi_out.Write([[[0x90,0,127],pypm.Time()]])
         time.sleep(0.1)
-        self.midi_out.Write([[[0xb0,110,0],pypm.Time()]])
+        self.midi_out.Write([[[0x80,0,0],pypm.Time()]])
 
     def stop_jingles(self):
         print "stopping jingles"
@@ -68,10 +68,18 @@ class OSCSender:
     def add_marker(self):
         self.sender.send(OSC.Message("/ardour/add_marker"))
 
-    def recplay(self):
+    def rec_prepare(self):
+        self.sender.send(OSC.Message("Editor/remove-last-capture"))
         self._simple_msg("goto_start")
-        self.sender.send(OSC.Message("/ardour/recenable", 1, 1))
+        for rid in ardour_routes:
+            self.sender.send(OSC.Message("/ardour/routes/recenable", rid, 1))
+        self._simple_msg("rec_enable_toggle")
 
+    def play(self):
+        self._simple_msg("transport_play")
+
+    def stop(self):
+        self._simple_msg("transport_stop")
 
 midi_sender = MIDISender("Midi Through Port-0")
 osc_sender = OSCSender()
@@ -132,9 +140,10 @@ class MasterWii(MutingWii):
     def __init__(self,mutingChannel):
         super(MasterWii,self).__init__(mutingChannel)
         self.button_funcs[btn_one] = (self.jingle_play,self.leds_off)
-        self.button_funcs[btn_home] = (self.recplay,self.leds_off)
+        self.button_funcs[btn_home] = (self.rec_prepare,self.leds_off)
         self.button_funcs[btn_A] = (self.set_mark,self.leds_off)
-        self.button_funcs[btn_two] = (self.jingles_stop,self.leds_off)
+        self.button_funcs[btn_up] = (self.play,self.leds_off)
+        self.button_funcs[btn_down] = (self.stop,self.leds_off)
 
     def jingle_play(self):
         print "Jingle play"
@@ -144,9 +153,16 @@ class MasterWii(MutingWii):
     def jingles_stop(self):
         midi_sender.stop_jingles()
 
-    def recplay(self):
+    def rec_prepare(self):
         print "Recplay"
         self.device.led = cwiid.LED3_ON
+        osc_sender.rec_prepare()
+
+    def play(self):
+        osc_sender.play()
+
+    def stop(self):
+        osc_sender.stop()
 
     def set_mark(self):
         print "Set mark"
