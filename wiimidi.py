@@ -43,11 +43,11 @@ class MIDISender:
             self.midi_out.Write([[[0xb0,channel,v],pypm.Time()]])
             time.sleep(0.001)
 
-    def play_jingle(self):
-        print "playing jingle"
-        self.midi_out.Write([[[0x90,0,127],pypm.Time()]])
+    def play_jingle(self, n):
+        print "playing jingle", n
+        self.midi_out.Write([[[0x90,n,127],pypm.Time()]])
         time.sleep(0.1)
-        self.midi_out.Write([[[0x80,0,0],pypm.Time()]])
+        self.midi_out.Write([[[0x80,n,0],pypm.Time()]])
 
     def stop_jingles(self):
         print "stopping jingles"
@@ -69,10 +69,11 @@ class OSCSender:
         self.sender.send(OSC.Message("/ardour/add_marker"))
 
     def rec_prepare(self):
-        self.sender.send(OSC.Message("Editor/remove-last-capture"))
+        self.sender.send(OSC.Message("/ardour/access_action", "Editor/remove-last-capture"))
         self._simple_msg("goto_start")
-        for rid in ardour_routes:
+        for rid in range(15):
             self.sender.send(OSC.Message("/ardour/routes/recenable", rid, 1))
+            self.sender.send(OSC.Message("/ardour/routes/automation_state", rid, "gain", "w"))
         self._simple_msg("rec_enable_toggle")
 
     def play(self):
@@ -139,16 +140,22 @@ class MutingWii(WiiButtonState):
 class MasterWii(MutingWii):
     def __init__(self,mutingChannel):
         super(MasterWii,self).__init__(mutingChannel)
-        self.button_funcs[btn_one] = (self.jingle_play,self.leds_off)
+        self.button_funcs[btn_one] = (self.jingle1_play,self.leds_off)
+        self.button_funcs[btn_two] = (self.jingle2_play,self.leds_off)
         self.button_funcs[btn_home] = (self.rec_prepare,self.leds_off)
         self.button_funcs[btn_A] = (self.set_mark,self.leds_off)
         self.button_funcs[btn_up] = (self.play,self.leds_off)
         self.button_funcs[btn_down] = (self.stop,self.leds_off)
 
-    def jingle_play(self):
-        print "Jingle play"
+    def jingle1_play(self):
+        print "Jingle1 play"
         self.device.led = cwiid.LED2_ON
-        midi_sender.play_jingle()
+        midi_sender.play_jingle(0)
+
+    def jingle2_play(self):
+        print "Jingle2 play"
+        self.device.led = cwiid.LED2_ON
+        midi_sender.play_jingle(1)
 
     def jingles_stop(self):
         midi_sender.stop_jingles()
