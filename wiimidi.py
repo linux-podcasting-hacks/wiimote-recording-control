@@ -63,24 +63,19 @@ class OSCSender:
         self.sender = SYNC.UdpSender(host,port)
 
     def _simple_msg(self,msg):
-        self.sender.send(OSC.Message("/ardour/"+msg))
+        self.sender.send(OSC.Message(msg))
 
     def add_marker(self):
-        self.sender.send(OSC.Message("/ardour/add_marker"))
+        self._simple_msg("/add_marker")
 
     def rec_prepare(self):
-        self.sender.send(OSC.Message("/ardour/access_action", "Editor/remove-last-capture"))
-        self._simple_msg("goto_start")
-        for rid in range(15):
-            self.sender.send(OSC.Message("/ardour/routes/recenable", rid, 1))
-            self.sender.send(OSC.Message("/ardour/routes/automation_state", rid, "gain", "w"))
-        self._simple_msg("rec_enable_toggle")
+        self.sender.send(OSC.Message("/access_action", "Editor/script-action-2"))
 
     def play(self):
-        self._simple_msg("transport_play")
+        self._simple_msg("/transport_play")
 
     def stop(self):
-        self._simple_msg("transport_stop")
+        self._simple_msg("/transport_stop")
 
 midi_sender = MIDISender("Midi Through Port-0")
 osc_sender = OSCSender()
